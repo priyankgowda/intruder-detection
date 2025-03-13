@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Error | Intruder Detection System{% endblock %}
+
+{% block content %}
+<div class="error-container py-5">
+    <div class="text-center">
+        <div class="mb-4">
+            <i class="fas fa-exclamation-circle text-danger" style="font-size: 4rem;"></i>
+        </div>
+        <h1 class="mb-4">{{ error_title|default('Error') }}</h1>
+        <div class="mb-4">
+            <p class="lead">{{ error_message|default('An error occurred while processing your request.') }}</p>
+            <p class="text-muted">
+                {{ error_details|default('Please try again or contact the administrator if the problem persists.') }}
+            </p>
+        </div>
+        <div class="mt-5">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

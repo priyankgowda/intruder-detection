@@ -1,0 +1,417 @@
+/* Theme variables - using a more refined color palette */
+:root {
+    /* Light theme */
+    --bg-color: #f8f9fa;
+    --secondary-bg: #ffffff;
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --card-bg: #ffffff;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --sidebar-bg: #343a40;
+    --sidebar-text: rgba(255, 255, 255, 0.8);
+    --sidebar-active: #0d6efd;
+    --sidebar-hover: #495057;
+    --navbar-bg: #f8f9fa;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --alert-bg-light: #f8d7da;
+}
+
+[data-theme="dark"] {
+    /* Dark theme with improved contrast */
+    --bg-color: #121212;
+    --secondary-bg: #1e1e1e;
+    --text-color: #ffffff; /* Was already white, but ensuring it's 100% white */
+    --text-muted: #bdc3cf; /* Brighter muted text */
+    --border-color: #2d3339;
+    --card-bg: #1e1e1e;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    --sidebar-bg: #0f0f0f;
+    --sidebar-text: #ffffff; /* Brighter sidebar text */
+    --sidebar-active: #3d8bfd;
+    --sidebar-hover: #2b2b2b;
+    --navbar-bg: #1e1e1e;
+    --input-bg: #2b2b2b;
+    --input-border: #3d3d3d;
+    --primary-color: #3d8bfd;
+    --success-color: #20c997;
+    --danger-color: #eb4d58;
+    --warning-color: #ffca2c;
+    --info-color: #39cbfb;
+    --alert-bg-light: #352728;
+}
+
+/* Base styling */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar styling */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    min-height: 100vh;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1000;
+}
+
+#sidebar.active {
+    margin-left: -250px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul li a {
+    padding: 10px 20px;
+    display: block;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: all 0.3s;
+    border-radius: 4px;
+    margin: 2px 10px;
+}
+
+#sidebar ul li a:hover {
+    background: var(--sidebar-hover);
+    color: #ffffff;
+}
+
+#sidebar ul li.active > a {
+    color: #ffffff;
+    background: var(--sidebar-active);
+}
+
+#content {
+    width: 100%;
+    min-height: 100vh;
+    transition: all 0.3s;
+    background-color: var(--bg-color);
+    padding: 0;
+    position: relative;
+}
+
+/* Navbar styling - better dark mode support */
+.navbar {
+    background-color: var(--navbar-bg) !important;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 20px;
+}
+
+[data-theme="dark"] .navbar-light .navbar-brand,
+[data-theme="dark"] .navbar-light .navbar-text {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: var(--sidebar-hover);
+    color: #ffffff;
+}
+
+/* Card styling with better shadows */
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .card-header {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Table styling */
+.table {
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-color);
+}
+
+/* Form controls */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--input-bg);
+    border-color: var(--primary-color);
+    color: var(--text-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* Badges and alerts */
+[data-theme="dark"] .badge.bg-secondary {
+    background-color: #495057 !important;
+}
+
+[data-theme="dark"] .alert-danger {
+    color: #f8d7da;
+    background-color: var(--alert-bg-light);
+    border-color: #842029;
+}
+
+[data-theme="dark"] .alert-success {
+    color: #d1e7dd;
+    background-color: #051b11;
+    border-color: #0f5132;
+}
+
+[data-theme="dark"] .alert-info {
+    color: #cff4fc;
+    background-color: #032830;
+    border-color: #087990;
+}
+
+/* Modal styling */
+[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-color);
+}
+
+/* Improved Dark mode switch styling */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    display: inline-block;
+    position: relative;
+    width: 60px;
+    height: 30px;
+    margin-bottom: 0;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+}
+
+.slider .fa-sun {
+    color: #f39c12;
+    font-size: 14px;
+    margin-left: 4px;
+}
+
+.slider .fa-moon {
+    color: #f8f9fa;
+    font-size: 14px;
+    margin-right: 4px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    z-index: 2;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+    background-color: #375a7f;
+}
+
+input:checked + .slider:before {
+    transform: translateX(30px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+/* Link colors */
+[data-theme="dark"] a:not(.btn) {
+    color: #6ea8fe;
+}
+
+[data-theme="dark"] a:not(.btn):hover {
+    color: #8bb9fe;
+}
+
+/* Code blocks & logs */
+[data-theme="dark"] pre {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+/* Video player controls */
+[data-theme="dark"] video::-webkit-media-controls-panel {
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+/* Add these overrides for better contrast in specific elements */
+[data-theme="dark"] .card-text,
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .nav-link,
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .navbar-text {
+    color: #ffffff !important; /* Force white text in these elements */
+}
+
+[data-theme="dark"] .text-muted {
+    color: #bdc3cf !important; /* Brighter muted text */
+}
+
+/* Make sure cards and content areas have enough contrast with the background */
+[data-theme="dark"] .card,
+[data-theme="dark"] .modal-content {
+    background-color: #1e1e1e;
+    border-color: #2d3339;
+}
+
+/* Better button text contrast */
+[data-theme="dark"] .btn {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    color: #ffffff;
+    border-color: #4d5154;
+}
+
+/* Make sure the toggle button is visible and works */
+#sidebarCollapse {
+    z-index: 1050;
+    position: relative;
+}
+
+/* Add these specific selectors to fix white background elements */
+[data-theme="dark"] .card,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .list-group-item,
+[data-theme="dark"] .accordion-item,
+[data-theme="dark"] .toast,
+[data-theme="dark"] .pagination,
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .offcanvas {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+
+/* Fix for tables in dark mode */
+[data-theme="dark"] .table {
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>* {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="dark"] .table-hover>tbody>tr:hover>* {
+    background-color: rgba(255, 255, 255, 0.075) !important;
+}
+
+/* Fix for white backgrounds in modals and fields */
+[data-theme="dark"] .dropdown-item:hover, 
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--sidebar-hover) !important;
+    color: var(--text-color) !important;
+}
+
+/* Fix for buttons */
+[data-theme="dark"] .btn-light,
+[data-theme="dark"] .btn-close {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-color) !important;
+}
+
+/* Fix for input groups */
+[data-theme="dark"] .input-group-text {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+/* This catches most Bootstrap components with white backgrounds */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-body,
+[data-theme="dark"] .bg-light {
+    background-color: var(--card-bg) !important;
+}

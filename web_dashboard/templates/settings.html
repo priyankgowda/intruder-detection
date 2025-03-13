@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+
+{% block title %}Settings | Intruder Detection System{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <h1 class="mb-4">System Settings</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Changes to settings will take effect when the detection system is restarted.
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group settings-nav" id="settings-tab" role="tablist">
+                <a class="list-group-item list-group-item-action active" id="camera-tab" data-bs-toggle="list" href="#camera-settings" role="tab">
+                    <i class="fas fa-video"></i> Camera Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="detection-tab" data-bs-toggle="list" href="#detection-settings" role="tab">
+                    <i class="fas fa-search"></i> Detection Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="tracking-tab" data-bs-toggle="list" href="#tracking-settings" role="tab">
+                    <i class="fas fa-crosshairs"></i> Tracking Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="alerts-tab" data-bs-toggle="list" href="#alerts-settings" role="tab">
+                    <i class="fas fa-bell"></i> Alerts Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="recording-tab" data-bs-toggle="list" href="#recording-settings" role="tab">
+                    <i class="fas fa-film"></i> Recording Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="paths-tab" data-bs-toggle="list" href="#paths-settings" role="tab">
+                    <i class="fas fa-folder-open"></i> Paths Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="security-tab" data-bs-toggle="list" href="#security-settings" role="tab">
+                    <i class="fas fa-lock"></i> Security Settings
+                </a>
+                <a class="list-group-item list-group-item-action" id="system-tab" data-bs-toggle="list" href="#system-info" role="tab">
+                    <i class="fas fa-server"></i> System Information
+                </a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    <div class="tab-content" id="settings-tabContent">
+                        <!-- Camera Settings -->
+                        <div class="tab-pane fade show active" id="camera-settings" role="tabpanel">
+                            <h4 class="mb-4">Camera Settings</h4>
+                            <form id="cameraForm">
+                                <div class="mb-3">
+                                    <label for="camera_index" class="form-label">Camera Index</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="camera_index" name="camera.camera_index" min="0" value="0">
+                                        <button class="btn btn-outline-primary" type="button" id="testCamera">Test</button>
+                                    </div>
+                                    <div class="form-text">The index of the camera to use (0 for default camera)</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="frame_width" class="form-label">Frame Width</label>
+                                            <input type="number" class="form-control" id="frame_width" name="camera.frame_width" min="320" step="16" value="640">
+                                            <div class="form-text">Width in pixels</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="frame_height" class="form-label">Frame Height</label>
+                                            <input type="number" class="form-control" id="frame_height" name="camera.frame_height" min="240" step="16" value="480">
+                                            <div class="form-text">Height in pixels</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="cameraTestResult" class="alert d-none"></div>
+                            </form>
+                        </div>
+                        
+                        <!-- Detection Settings -->
+                        <div class="tab-pane fade" id="detection-settings" role="tabpanel">
+                            <h4 class="mb-4">Detection Settings</h4>
+                            <form id="detectionForm">
+                                <div class="mb-3">
+                                    <label for="face_recognition_tolerance" class="form-label">Face Recognition Tolerance</label>
+                                    <input type="range" class="form-range" id="face_recognition_tolerance" name="detection.face_recognition_tolerance" min="0.3" max="0.9" step="0.01" value="0.6">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="form-text">More Strict (0.3)</div>
+                                        <div class="form-text fw-bold" id="face_recognition_tolerance_value">0.6</div>
+                                        <div class="form-text">Less Strict (0.9)</div>
+                                    </div>
+                                    <div class="form-text">Lower values require more similarity for face recognition</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="face_confidence_threshold" class="form-label">Face Confidence Threshold</label>
+                                    <input type="range" class="form-range" id="face_confidence_threshold" name="detection.face_confidence_threshold" min="0.1" max="0.9" step="0.01" value="0.5">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="form-text">Lower (0.1)</div>
+                                        <div class="form-text fw-bold" id="face_confidence_threshold_value">0.5</div>
+                                        <div class="form-text">Higher (0.9)</div>
+                                    </div>
+                                    <div class="form-text">Confidence threshold for face detection</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="frames_to_skip" class="form-label">Frames to Skip</label>
+                                    <input type="number" class="form-control" id="frames_to_skip" name="detection.frames_to_skip" min="0" max="10" value="3">
+                                    <div class="form-text">Number of frames to skip between detection (higher values reduce CPU usage)</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="nms_iou_threshold" class="form-label">NMS IOU Threshold</label>
+                                    <input type="range" class="form-range" id="nms_iou_threshold" name="detection.nms_iou_threshold" min="0.1" max="1.0" step="0.05" value="0.5">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="form-text">Lower (0.1)</div>
+                                        <div class="form-text fw-bold" id="nms_iou_threshold_value">0.5</div>
+                                        <div class="form-text">Higher (1.0)</div>
+                                    </div>
+                                    <div class="form-text">Non-maximum suppression threshold for overlapping detections</div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Tracking Settings -->
+                        <div class="tab-pane fade" id="tracking-settings" role="tabpanel">
+                            <h4 class="mb-4">Tracking Settings</h4>
+                            <form id="trackingForm">
+                                <div class="mb-3">
+                                    <label for="tracker_timeout" class="form-label">Tracker Timeout (seconds)</label>
+                                    <input type="number" class="form-control" id="tracker_timeout" name="tracking.tracker_timeout" min="0.1" max="10" step="0.1" value="1.0">
+                                    <div class="form-text">Time to wait before resetting a tracker if no detection is found</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="presence_timeout" class="form-label">Presence Timeout (seconds)</label>
+                                    <input type="number" class="form-control" id="presence_timeout" name="tracking.presence_timeout" min="1" max="30" step="0.5" value="5">
+                                    <div class="form-text">Time a person is considered present after leaving the frame</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="person_timeout" class="form-label">Person Timeout (seconds)</label>
+                                    <input type="number" class="form-control" id="person_timeout" name="tracking.person_timeout" min="1" max="30" step="0.5" value="5">
+                                    <div class="form-text">Time to keep tracking a person before forgetting them</div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Alerts Settings -->
+                        <div class="tab-pane fade" id="alerts-settings" role="tabpanel">
+                            <h4 class="mb-4">Alerts Settings</h4>
+                            <form id="alertsForm">
+                                <div class="mb-3">
+                                    <label for="min_seconds_between_alerts" class="form-label">Minimum Seconds Between Alerts</label>
+                                    <input type="number" class="form-control" id="min_seconds_between_alerts" name="alerts.min_seconds_between_alerts" min="1" max="600" step="1" value="10">
+                                    <div class="form-text">Minimum time between sending consecutive alerts</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="telegram_token" class="form-label">Telegram Bot Token</label>
+                                    <input type="text" class="form-control" id="telegram_token" name="alerts.telegram_token" value="">
+                                    <div class="form-text">Token for your Telegram bot (leave empty to disable Telegram notifications)</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="telegram_chat_id" class="form-label">Telegram Chat ID</label>
+                                    <input type="text" class="form-control" id="telegram_chat_id" name="alerts.telegram_chat_id" value="">
+                                    <div class="form-text">Chat ID where alerts will be sent</div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Recording Settings -->
+                        <div class="tab-pane fade" id="recording-settings" role="tabpanel">
+                            <h4 class="mb-4">Recording Settings</h4>
+                            <form id="recordingForm">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="recording_enabled" name="recording.recording_enabled" checked>
+                                        <label class="form-check-label" for="recording_enabled">Enable Recording</label>
+                                    </div>
+                                    <div class="form-text">Enable continuous recording</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="video_fps" class="form-label">Recording FPS</label>
+                                    <input type="number" class="form-control" id="video_fps" name="recording.video_fps" min="1" max="30" step="1" value="20">
+                                    <div class="form-text">Frames per second for recording videos</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="intruder_clip_seconds" class="form-label">Intruder Clip Duration (seconds)</label>
+                                    <input type="number" class="form-control" id="intruder_clip_seconds" name="recording.intruder_clip_seconds" min="5" max="60" step="1" value="10">
+                                    <div class="form-text">Duration of video clips when intruders are detected</div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Paths Settings -->
+                        <div class="tab-pane fade" id="paths-settings" role="tabpanel">
+                            <h4 class="mb-4">Paths Settings</h4>
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                These paths are read-only and can only be changed in the config.py file directly.
+                            </div>
+                            <form id="pathsForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Dataset Directory</label>
+                                    <input type="text" class="form-control" id="dataset_dir" name="paths.dataset_dir" readonly>
+                                    <div class="form-text">Directory where known faces are stored</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Recordings Directory</label>
+                                    <input type="text" class="form-control" id="recordings_dir" name="paths.recordings_dir" readonly>
+                                    <div class="form-text">Directory where recordings are stored</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Intruders Directory</label>
+                                    <input type="text" class="form-control" id="intruders_dir" name="paths.intruders_dir" readonly>
+                                    <div class="form-text">Directory where intruder recordings and images are stored</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Logs Directory</label>
+                                    <input type="text" class="form-control" id="logs_dir" name="paths.logs_dir" readonly>
+                                    <div class="form-text">Directory where logs are stored</div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Security Settings -->
+                        <div class="tab-pane fade" id="security-settings" role="tabpanel">
+                            <h4 class="mb-4">Security Settings</h4>
+                            <form id="securityForm">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        Change Admin Password
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="current_password" class="form-label">Current Password</label>
+                                            <input type="password" class="form-control" id="current_password" name="current_password">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="new_password" class="form-label">New Password</label>
+                                            <input type="password" class="form-control" id="new_password" name="new_password">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                        </div>
+                                        <button type="button" id="changePasswordBtn" class="btn btn-primary">Update Password</button>
+                                        <div id="passwordResult" class="alert mt-3 d-none"></div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- System Information -->
+                        <div class="tab-pane fade" id="system-info" role="tabpanel">
+                            <h4 class="mb-4">System Information</h4>
+                            <div class="d-flex justify-content-end mb-3">
+                                <button id="refreshSystemInfoBtn" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div id="systemInfoContent">
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-primary" id="saveSettingsBtn">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                        <div id="saveResult" class="d-none"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Load settings
+        loadSettings();
+        loadSystemInfo();
+        
+        // Range slider value display
+        $('#face_recognition_tolerance').on('input', function() {
+            $('#face_recognition_tolerance_value').text($(this).val());
+        });
+        
+        $('#face_confidence_threshold').on('input', function() {
+            $('#face_confidence_threshold_value').text($(this).val());
+        });
+        
+        $('#nms_iou_threshold').on('input', function() {
+            $('#nms_iou_threshold_value').text($(this).val());
+        });
+        
+        // Test camera button
+        $('#testCamera').click(function() {
+            testCamera();
+        });
+        
+        // Save settings button
+        $('#saveSettingsBtn').click(function() {
+            saveSettings();
+        });
+        
+        // Change password button
+        $('#changePasswordBtn').click(function() {
+            changePassword();
+        });
+        
+        // Refresh system info
+        $('#refreshSystemInfoBtn').click(function() {
+            loadSystemInfo();
+        });
+    });
+    
+    function loadSettings() {
+        fetch('/settings/get_current')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Set form values from settings
+                    const settings = data.settings;
+                    
+                    // Camera settings
+                    $('#camera_index').val(settings.camera.camera_index);
+                    $('#frame_width').val(settings.camera.frame_width);
+                    $('#frame_height').val(settings.camera.frame_height);
+                    
+                    // Detection settings
+                    $('#face_recognition_tolerance').val(settings.detection.face_recognition_tolerance);
+                    $('#face_recognition_tolerance_value').text(settings.detection.face_recognition_tolerance);
+                    $('#face_confidence_threshold').val(settings.detection.face_confidence_threshold);
+                    $('#face_confidence_threshold_value').text(settings.detection.face_confidence_threshold);
+                    $('#frames_to_skip').val(settings.detection.frames_to_skip);
+                    $('#nms_iou_threshold').val(settings.detection.nms_iou_threshold);
+                    $('#nms_iou_threshold_value').text(settings.detection.nms_iou_threshold);
+                    
+                    // Tracking settings
+                    $('#tracker_timeout').val(settings.tracking.tracker_timeout);
+                    $('#presence_timeout').val(settings.tracking.presence_timeout);
+                    $('#person_timeout').val(settings.tracking.person_timeout);
+                    
+                    // Alerts settings
+                    $('#min_seconds_between_alerts').val(settings.alerts.min_seconds_between_alerts);
+                    $('#telegram_token').val(settings.alerts.telegram_token);
+                    $('#telegram_chat_id').val(settings.alerts.telegram_chat_id);
+                    
+                    // Recording settings
+                    $('#recording_enabled').prop('checked', settings.recording.recording_enabled);
+                    $('#video_fps').val(settings.recording.video_fps);
+                    $('#intruder_clip_seconds').val(settings.recording.intruder_clip_seconds);
+                    
+                    // Paths
+                    $('#dataset_dir').val(settings.paths.dataset_dir);
+                    $('#recordings_dir').val(settings.paths.recordings_dir);
+                    $('#intruders_dir').val(settings.paths.intruders_dir);
+                    $('#logs_dir').val(settings.paths.logs_dir);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading settings:', error);
+            });
+    }
+    
+    function testCamera() {
+        const cameraIndex = $('#camera_index').val();
+        const testResult = $('#cameraTestResult');
+        
+        testResult.removeClass('d-none alert-success alert-danger').addClass('alert-info')
+            .html('<i class="fas fa-spinner fa-spin"></i> Testing camera connection...');
+        
+        fetch(`/settings/test_camera?index=${cameraIndex}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    testResult.removeClass('alert-info alert-danger').addClass('alert-success')
+                        .html('<i class="fas fa-check-circle"></i> ' + data.message);
+                } else {
+                    testResult.removeClass('alert-info alert-success').addClass('alert-danger')
+                        .html('<i class="fas fa-exclamation-triangle"></i> ' + data.error);
+                }
+            })
+            .catch(error => {
+                testResult.removeClass('alert-info alert-success').addClass('alert-danger')
+                    .html('<i class="fas fa-exclamation-triangle"></i> Network error while testing camera');
+            });
+    }
+    
+    function saveSettings() {
+        const saveResult = $('#saveResult');
+        saveResult.removeClass('d-none alert-success alert-danger').addClass('alert alert-info')
+            .html('<i class="fas fa-spinner fa-spin"></i> Saving settings...');
+        
+        // Collect all settings from forms
+        const settings = {
+            camera: formToObject('#cameraForm'),
+            detection: formToObject('#detectionForm'),
+            tracking: formToObject('#trackingForm'),
+            alerts: formToObject('#alertsForm'),
+            recording: formToObject('#recordingForm')
+        };
+        
+        // Handle checkbox values
+        settings.recording.recording_enabled = $('#recording_enabled').is(':checked');
+        
+        fetch('/settings/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                saveResult.removeClass('alert-info alert-danger').addClass('alert-success')
+                    .html('<i class="fas fa-check-circle"></i> Settings saved successfully!');
+            } else {
+                saveResult.removeClass('alert-info alert-success').addClass('alert-danger')
+                    .html('<i class="fas fa-exclamation-triangle"></i> ' + data.error);
+            }
+            
+            // Hide the alert after 5 seconds
+            setTimeout(() => saveResult.addClass('d-none'), 5000);
+        })
+        .catch(error => {
+            saveResult.removeClass('alert-info alert-success').addClass('alert-danger')
+                .html('<i class="fas fa-exclamation-triangle"></i> Network error while saving settings');
+            
+            setTimeout(() => saveResult.addClass('d-none'), 5000);
+        });
+    }
+    
+    function changePassword() {
+        const currentPassword = $('#current_password').val();
+        const newPassword = $('#new_password').val();
+        const confirmPassword = $('#confirm_password').val();
+        const passwordResult = $('#passwordResult');
+        
+        // Simple validation
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            passwordResult.removeClass('d-none alert-success').addClass('alert-danger')
+                .html('<i class="fas fa-exclamation-triangle"></i> All fields are required');
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            passwordResult.removeClass('d-none alert-success').addClass('alert-danger')
+                .html('<i class="fas fa-exclamation-triangle"></i> New passwords do not match');
+            return;
+        }
+        
+        passwordResult.removeClass('d-none alert-success alert-danger').addClass('alert-info')
+            .html('<i class="fas fa-spinner fa-spin"></i> Changing password...');
+        
+        fetch('/settings/change_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                passwordResult.removeClass('alert-info alert-danger').addClass('alert-success')
+                    .html('<i class="fas fa-check-circle"></i> ' + data.message);
+                    
+                // Clear password fields
+                $('#current_password').val('');
+                $('#new_password').val('');
+                $('#confirm_password').val('');
+            } else {
+                passwordResult.removeClass('alert-info alert-success').addClass('alert-danger')
+                    .html('<i class="fas fa-exclamation-triangle"></i> ' + data.error);
+            }
+            
+            setTimeout(() => passwordResult.addClass('d-none'), 5000);
+        })
+        .catch(error => {
+            passwordResult.removeClass('alert-info alert-success').addClass('alert-danger')
+                .html('<i class="fas fa-exclamation-triangle"></i> Network error while changing password');
+                
+            setTimeout(() => passwordResult.addClass('d-none'), 5000);
+        });
+    }
+    
+    function loadSystemInfo() {
+        const systemInfoContent = $('#systemInfoContent');
+        
+        systemInfoContent.html(`
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `);
+        
+        fetch('/settings/system_status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const status = data.status;
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr>
+                                        <th width="30%">Camera</th>
+                                        <td>
+                                            <span class="badge ${status.camera === 'Available' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.camera}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Face Recognition</th>
+                                        <td>
+                                            <span class="badge ${status.face_recognition === 'Available' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.face_recognition}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Detector Status</th>
+                                        <td>
+                                            <span class="badge ${status.detection === 'Running' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.detection}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Dataset</th>
+                                        <td>
+                                            <span class="badge ${status.dataset_dir === 'Available' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.dataset_dir}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Recordings</th>
+                                        <td>
+                                            <span class="badge ${status.recordings_dir === 'Available' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.recordings_dir}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Intruders</th>
+                                        <td>
+                                            <span class="badge ${status.intruders_dir === 'Available' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.intruders_dir}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Logs</th>
+                                        <td>
+                                            <span class="badge ${status.logs_dir === 'Available' ? 'bg-success' : 'bg-danger'}">
+                                                ${status.logs_dir}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Encodings</th>
+                                        <td>${status.encodings || 'Unknown'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Operating System</th>
+                                        <td>${status.os || 'Unknown'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Python Version</th>
+                                        <td>${status.python || 'Unknown'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>CPU Usage</th>
+                                        <td>${status.cpu_usage || 'Unknown'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Memory Usage</th>
+                                        <td>${status.memory_used || 'Unknown'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Disk Usage</th>
+                                        <td>${status.disk_usage || 'Unknown'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    systemInfoContent.html(html);
+                } else {
+                    systemInfoContent.html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            Error loading system information: ${data.error || 'Unknown error'}
+                        </div>
+                    `);
+                }
+            })
+            .catch(error => {
+                systemInfoContent.html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Network error while loading system information
+                    </div>
+                `);
+            });
+    }
+    
+    // Helper function to convert form data to object
+    function formToObject(formSelector) {
+        const result = {};
+        const inputs = $(formSelector).find('input, select, textarea');
+        
+        inputs.each(function() {
+            const input = $(this);
+            const name = input.attr('name');
+            
+            if (!name) return;
+            
+            // Skip if name doesn't have a dot (category.setting format)
+            if (name.indexOf('.') === -1) return;
+            
+            // Extract setting name (everything after the dot)
+            const setting = name.split('.')[1];
+            
+            // Get value based on input type
+            let value;
+            if (input.attr('type') === 'checkbox') {
+                value = input.is(':checked');
+            } else if (input.attr('type') === 'number') {
+                value = parseFloat(input.val());
+                if (isNaN(value)) value = 0;
+            } else {
+                value = input.val();
+            }
+            
+            result[setting] = value;
+        });
+        
+        return result;
+    }
+</script>
+{% endblock %}

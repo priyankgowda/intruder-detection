@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Logs | Intruder Detection System{% endblock %}
+
+{% block content %}
+<div class="logs-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>System Logs</h1>
+        <button class="btn btn-primary" id="refreshLogs">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Log Files</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="logFilesList">
+                        <div class="list-group-item text-center">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" id="currentLogTitle">Log Content</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-danger me-2" id="clearLogBtn" disabled>
+                                <i class="fas fa-trash"></i> Clear Log
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="downloadLogBtn" disabled>
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="logContentArea" class="log-content">
+                        <div class="text-center text-muted py-5">
+                            Select a log file to view its contents
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clear Log Confirmation Modal -->
+<div class="modal fade" id="clearLogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clearLogModalLabel">Confirm Log Clearing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to clear this log file? This action cannot be undone.</p>
+                <p class="text-danger"><strong>Log file:</strong> <span id="clearLogFilename"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmClearLog">Clear Log</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Load log files when page loads
+        loadLogFiles();
+        
+        // Set up refresh button
+        $('#refreshLogs').click(function() {
+            loadLogFiles();
+            if (currentLogFile) {
+                loadLogContent(currentLogFile);
+            }
+        });
+        
+        // Set up clear log button
+        $('#clearLogBtn').click(function() {
+            if (!currentLogFile) return;
+            
+            $('#clearLogFilename').text(currentLogFile);
+            
+            // Show confirmation modal
+            const clearLogModal = new bootstrap.Modal(document.getElementById('clearLogModal'));
+            clearLogModal.show();
+        });
+        
+        // Set up confirm clear button
+        $('#confirmClearLog').click(function() {
+            clearLog(currentLogFile);
+            
+            // Hide modal
+            bootstrap.Modal.getInstance(document.getElementById('clearLogModal')).hide();
+        });
+        
+        // Set up download log button
+        $('#downloadLogBtn').click(function() {
+            if (!currentLogFile) return;
+            
+            // Create a temporary link to download the log
+            downloadLog(currentLogFile);
+        });
+    });
+    
+    let currentLogFile = null;
+    
+    function loadLogFiles() {
+        fetch('/logs/list')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateLogFilesList(data.logs);
+                } else {
+                    console.error('Error loading logs:', data.error);
+                    showErrorMessage('Error loading log files');
+                }
+            })
+            .catch(error => {
+                console.error('Network error:', error);
+                showErrorMessage('Network error while loading log files');
+            });
+    }
+    
+    function updateLogFilesList(logs) {
+        const logsList = $('#logFilesList');
+        logsList.empty();
+        
+        if (logs.length === 0) {
+            logsList.append(`
+                <div class="list-group-item text-center text-muted">
+                    No log files found
+                </div>
+            `);
+            return;
+        }
+        
+        logs.forEach(log => {
+            const item = $(`
+                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">${log.filename}</div>
+                        <div class="small text-muted">${log.date}</div>
+                    </div>
+                    <span class="badge bg-secondary rounded-pill">${log.lines} lines</span>
+                </a>
+            `);
+            
+            // Add click handler
+            item.click(function(e) {
+                e.preventDefault();
+                
+                // Update active state
+                $('.list-group-item').removeClass('active');
+                $(this).addClass('active');
+                
+                // Load the log content
+                loadLogContent(log.filename);
+            });
+            
+            logsList.append(item);
+        });
+        
+        // If we had a selected log, try to reselect it
+        if (currentLogFile) {
+            const previousSelection = $(`.list-group-item:contains('${currentLogFile}')`);
+            if (previousSelection.length) {
+                previousSelection.click();
+            } else {
+                // If the previously selected log is no longer available, select the first one
+                $('.list-group-item').first().click();
+            }
+        }
+    }
+    
+    function loadLogContent(filename) {
+        currentLogFile = filename;
+        
+        // Update title
+        $('#currentLogTitle').text(filename);
+        
+        // Show loading
+        $('#logContentArea').html(`
+            <div class="text-center py-5">
+                <div class="spinner-border" role="status"></div>
+                <div class="mt-2">Loading log content...</div>
+            </div>
+        `);
+        
+        // Enable buttons
+        $('#clearLogBtn, #downloadLogBtn').prop('disabled', false);
+        
+        fetch(`/logs/content?filename=${encodeURIComponent(filename)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayLogContent(data.content);
+                } else {
+                    console.error('Error loading log content:', data.error);
+                    showLogContentError('Error loading log content');
+                }
+            })
+            .catch(error => {
+                console.error('Network error:', error);
+                showLogContentError('Network error while loading log content');
+            });
+    }
+    
+    function displayLogContent(content) {
+        const logContentArea = $('#logContentArea');
+        logContentArea.empty();
+        
+        if (!content || content.length === 0) {
+            logContentArea.html(`
+                <div class="text-center text-muted py-5">
+                    This log file is empty
+                </div>
+            `);
+            return;
+        }
+        
+        const logDiv = $('<pre class="log-content-pre"></pre>');
+        content.forEach(line => {
+            // Colorize different log levels
+            let lineClass = '';
+            if (line.includes('ERROR') || line.includes('CRITICAL') || line.includes('FATAL')) {
+                lineClass = 'log-error';
+            } else if (line.includes('WARNING')) {
+                lineClass = 'log-warning';
+            } else if (line.includes('INFO')) {
+                lineClass = 'log-info';
+            } else if (line.includes('DEBUG')) {
+                lineClass = 'log-debug';
+            }
+            
+            logDiv.append($(`<div class="${lineClass}"></div>`).text(line));
+        });
+        
+        logContentArea.append(logDiv);
+        
+        // Scroll to bottom
+        logContentArea.scrollTop(logContentArea[0].scrollHeight);
+    }
+    
+    function showErrorMessage(message) {
+        $('#logFilesList').html(`
+            <div class="list-group-item text-center text-danger">
+                ${message}
+            </div>
+        `);
+    }
+    
+    function showLogContentError(message) {
+        $('#logContentArea').html(`
+            <div class="text-center text-danger py-5">
+                ${message}
+            </div>
+        `);
+    }
+    
+    function clearLog(filename) {
+        const formData = new FormData();
+        formData.append('filename', filename);
+        
+        fetch('/logs/clear', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the log content
+                loadLogContent(filename);
+            } else {
+                alert('Error clearing log: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Network error:', error);
+            alert('Network error while clearing log');
+        });
+    }
+    
+    function downloadLog(filename) {
+        // Create a temporary form to submit for download
+        const form = document.createElement('form');
+        form.method = 'GET';
+        form.action = '/logs/download';
+        
+        const filenameInput = document.createElement('input');
+        filenameInput.type = 'hidden';
+        filenameInput.name = 'filename';
+        filenameInput.value = filename;
+        
+        form.appendChild(filenameInput);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+</script>
+
+<style>
+    .log-content {
+        height: 70vh;
+        overflow-y: auto;
+        /* Use theme variables instead of hardcoded colors */
+        background-color: var(--secondary-bg, #f8f9fa);
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 4px;
+    }
+    
+    .log-content-pre {
+        margin: 0;
+        padding: 15px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: var(--text-color, #212529);
+    }
+    
+    /* Theme-aware log level colors */
+    .log-error {
+        color: var(--danger-color, #dc3545);
+    }
+    
+    .log-warning {
+        color: var(--warning-color, #ffc107);
+    }
+    
+    .log-info {
+        color: var(--primary-color, #0d6efd);
+    }
+    
+    .log-debug {
+        color: var(--text-muted, #6c757d);
+    }
+    
+    /* Ensure dark theme readability for logs */
+    [data-theme="dark"] .log-debug {
+        color: #a0a9b2; /* Brighter gray for dark mode */
+    }
+    
+    [data-theme="dark"] .log-warning {
+        color: #ffda6a; /* Brighter yellow for dark mode */
+    }
+    
+    [data-theme="dark"] .list-group-item {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+    
+    [data-theme="dark"] .list-group-item.active {
+        background-color: var(--sidebar-active);
+        border-color: var(--sidebar-active);
+    }
+    
+    /* Make sure modals have proper background color */
+    [data-theme="dark"] .modal-content {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .modal-header,
+    [data-theme="dark"] .modal-footer {
+        border-color: var(--border-color);
+    }
+</style>
+{% endblock %}

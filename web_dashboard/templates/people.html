@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block title %}People | Intruder Detection System{% endblock %}
+
+{% block content %}
+<div class="people-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>People Management</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPersonModal">
+            <i class="fas fa-plus-circle"></i> Add New Person
+        </button>
+    </div>
+    
+    <div class="row">
+        <!-- People list -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Known People</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="peopleList">
+                        <div class="text-center p-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Person details -->
+        <div class="col-md-8">
+            <div class="card person-details">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0" id="personName">Select a person</h5>
+                    <div class="btn-group d-none" id="personActions">
+                        <button class="btn btn-sm btn-outline-primary" id="addImageBtn">
+                            <i class="fas fa-image"></i> Add Image
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" id="deletePersonBtn">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="personDetailsPlaceholder">
+                        <div class="text-center p-5 text-muted">
+                            <i class="fas fa-user fa-4x mb-3"></i>
+                            <p>Select a person from the list to view details</p>
+                        </div>
+                    </div>
+                    
+                    <div id="personDetailsContent" class="d-none">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>Last seen:</strong> <span id="personLastSeen">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Training images:</strong> <span id="personImageCount">0</span></p>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Training Images</h5>
+                        <div class="row" id="personImages">
+                            <!-- Images will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Person Modal -->
+<div class="modal fade" id="addPersonModal" tabindex="-1" aria-labelledby="addPersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPersonModalLabel">Add New Person</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPersonForm">
+                    <div class="mb-3">
+                        <label for="personName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="newPersonName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="personImage" class="form-label">Upload Initial Face Image (optional)</label>
+                        <input type="file" class="form-control" id="personImage" accept="image/*">
+                        <div class="form-text">For best results, upload a clear frontal face image.</div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="learnFace" checked>
+                        <label class="form-check-label" for="learnFace">
+                            Learn face immediately
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="savePersonBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Image Modal -->
+<div class="modal fade" id="addImageModal" tabindex="-1" aria-labelledby="addImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addImageModalLabel">Add Training Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addImageForm">
+                    <div class="mb-3">
+                        <label for="newImage" class="form-label">Select Image</label>
+                        <input type="file" class="form-control" id="newImage" accept="image/*" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="learnNewFace" checked>
+                        <label class="form-check-label" for="learnNewFace">
+                            Learn face immediately
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveImageBtn">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Person Confirmation Modal -->
+<div class="modal fade" id="deletePersonModal" tabindex="-1" aria-labelledby="deletePersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePersonModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deletePersonName"></strong>?</p>
+                <p class="text-danger">This will remove all training images and face recognition data for this person. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="imagePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imagePreviewModalLabel">Image Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="previewImage" src="" alt="Preview" class="img-fluid">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteImageBtn">Delete Image</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Global variables
+        let selectedPerson = null;
+        let selectedImage = null;
+        
+        // Load people list
+        loadPeopleList();
+        
+        // Set up event handlers
+        $('#savePersonBtn').click(addNewPerson);
+        $('#addImageBtn').click(function() {
+            $('#addImageModal').modal('show');
+        });
+        $('#saveImageBtn').click(uploadImage);
+        $('#deletePersonBtn').click(function() {
+            if (selectedPerson) {
+                $('#deletePersonName').text(selectedPerson);
+                $('#deletePersonModal').modal('show');
+            }
+        });
+        $('#confirmDeleteBtn').click(deletePerson);
+        
+        // Function to load the list of known people
+        function loadPeopleList() {
+            fetch('/people/list')
+                .then(response => response.json())
+                .then(data => {
+                    const peopleList = $('#peopleList');
+                    peopleList.empty();
+                    
+                    if (data.success && data.people.length > 0) {
+                        data.people.forEach(person => {
+                            const item = $(`
+                                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center person-item" data-name="${person.name}">
+                                    <div>
+                                        <span class="person-name">${person.name}</span>
+                                        <small class="d-block text-muted">Last seen: ${person.last_seen}</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">${person.image_count}</span>
+                                </a>
+                            `);
+                            
+                            item.click(function() {
+                                selectedPerson = person.name;
+                                loadPersonDetails(person.name);
+                                
+                                // Update active state
+                                $('.person-item').removeClass('active');
+                                $(this).addClass('active');
+                            });
+                            
+                            peopleList.append(item);
+                        });
+                    } else {
+                        peopleList.append(`
+                            <div class="list-group-item text-center text-muted">
+                                <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                <p>No people found</p>
+                                <p>Click "Add New Person" to get started</p>
+                            </div>
+                        `);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading people list:', error);
+                    $('#peopleList').html(`
+                        <div class="list-group-item text-center text-danger">
+                            <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                            <p>Failed to load people</p>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadPeopleList()">Try Again</button>
+                        </div>
+                    `);
+                });
+        }
+        
+        // Function to load details for a specific person
+        function loadPersonDetails(name) {
+            fetch(`/people/details?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI
+                        $('#personName').text(data.name);
+                        $('#personLastSeen').text(data.last_seen);
+                        $('#personImageCount').text(data.image_count);
+                        $('#personActions').removeClass('d-none');
+                        $('#personDetailsPlaceholder').addClass('d-none');
+                        $('#personDetailsContent').removeClass('d-none');
+                        
+                        // Load images
+                        const imagesContainer = $('#personImages');
+                        imagesContainer.empty();
+                        
+                        if (data.images && data.images.length > 0) {
+                            data.images.forEach(image => {
+                                const imageCol = $(`
+                                    <div class="col-md-4 col-sm-6 mb-4">
+                                        <div class="card image-card">
+                                            <div class="image-container position-relative">
+                                                <img src="/people/image/${encodeURIComponent(data.name)}/${encodeURIComponent(image.filename)}" 
+                                                    class="card-img-top" alt="${image.filename}">
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text small text-muted">${image.date}</p>
+                                                <div class="d-flex justify-content-between">
+                                                    <button class="btn btn-sm btn-outline-primary preview-btn" 
+                                                            data-filename="${image.filename}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger delete-image-btn" 
+                                                            data-filename="${image.filename}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `);
+                                
+                                // Set up preview button
+                                imageCol.find('.preview-btn').click(function() {
+                                    const filename = $(this).data('filename');
+                                    selectedImage = filename;
+                                    
+                                    // Set image source
+                                    $('#previewImage').attr('src', `/people/image/${encodeURIComponent(data.name)}/${encodeURIComponent(filename)}`);
+                                    
+                                    // Show modal
+                                    $('#imagePreviewModal').modal('show');
+                                });
+                                
+                                // Set up delete button
+                                imageCol.find('.delete-image-btn').click(function() {
+                                    const filename = $(this).data('filename');
+                                    if (confirm(`Are you sure you want to delete this image?`)) {
+                                        deleteImage(data.name, filename);
+                                    }
+                                });
+                                
+                                imagesContainer.append(imageCol);
+                            });
+                        } else {
+                            imagesContainer.append(`
+                                <div class="col-12 text-center text-muted p-4">
+                                    <i class="fas fa-images fa-3x mb-3"></i>
+                                    <p>No training images found</p>
+                                    <p>Add images to improve face recognition</p>
+                                </div>
+                            `);
+                        }
+                    } else {
+                        console.error('Error loading person details:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading person details:', error);
+                    $('#personDetailsContent').addClass('d-none');
+                    $('#personDetailsPlaceholder').removeClass('d-none')
+                        .html(`
+                            <div class="text-center p-5 text-danger">
+                                <i class="fas fa-exclamation-circle fa-4x mb-3"></i>
+                                <p>Failed to load person details</p>
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadPersonDetails('${name}')">Try Again</button>
+                            </div>
+                        `);
+                });
+        }
+        
+        // Function to add a new person
+        function addNewPerson() {
+            const name = $('#newPersonName').val().trim();
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+            
+            const imageFile = $('#personImage')[0].files[0];
+            const learnFace = $('#learnFace').prop('checked');
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('name', name);
+            if (imageFile) {
+                formData.append('image', imageFile);
+                formData.append('learn', learnFace.toString());
+            }
+            
+            // Submit to server
+            fetch('/people/add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and refresh list
+                    $('#addPersonModal').modal('hide');
+                    $('#addPersonForm')[0].reset();
+                    loadPeopleList();
+                    
+                    if (data.warning) {
+                        alert(`Warning: ${data.warning}`);
+                    }
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error adding person:', error);
+                alert('Failed to add person. See console for details.');
+            });
+        }
+        
+        // Function to upload a new image
+        function uploadImage() {
+            if (!selectedPerson) {
+                alert('No person selected');
+                return;
+            }
+            
+            const imageFile = $('#newImage')[0].files[0];
+            if (!imageFile) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            const learnFace = $('#learnNewFace').prop('checked');
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('person', selectedPerson);
+            formData.append('image', imageFile);
+            formData.append('learn', learnFace.toString());
+            
+            // Submit to server
+            fetch('/people/upload_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and refresh details
+                    $('#addImageModal').modal('hide');
+                    $('#addImageForm')[0].reset();
+                    loadPersonDetails(selectedPerson);
+                    
+                    if (data.warning) {
+                        alert(`Warning: ${data.warning}`);
+                    }
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading image:', error);
+                alert('Failed to upload image. See console for details.');
+            });
+        }
+        
+        // Function to delete an image
+        function deleteImage(person, filename) {
+            // Create form data
+            const formData = new FormData();
+            formData.append('person', person);
+            formData.append('filename', filename);
+            
+            // Submit to server
+            fetch('/people/delete_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Refresh details
+                    loadPersonDetails(selectedPerson);
+                    
+                    // Close preview modal if open
+                    if ($('#imagePreviewModal').hasClass('show') && selectedImage === filename) {
+                        $('#imagePreviewModal').modal('hide');
+                    }
+                    
+                    if (data.warning) {
+                        alert(`Warning: ${data.warning}`);
+                    }
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting image:', error);
+                alert('Failed to delete image. See console for details.');
+            });
+        }
+        
+        // Function to delete a person
+        function deletePerson() {
+            if (!selectedPerson) {
+                return;
+            }
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('name', selectedPerson);
+            
+            // Submit to server
+            fetch('/people/delete', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and refresh list
+                    $('#deletePersonModal').modal('hide');
+                    
+                    // Reset UI
+                    selectedPerson = null;
+                    $('#personName').text('Select a person');
+                    $('#personActions').addClass('d-none');
+                    $('#personDetailsContent').addClass('d-none');
+                    $('#personDetailsPlaceholder').removeClass('d-none');
+                    
+                    // Reload people list
+                    loadPeopleList();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting person:', error);
+                alert('Failed to delete person. See console for details.');
+            });
+        }
+        
+        // Set up image delete button in preview modal
+        $('#deleteImageBtn').click(function() {
+            if (selectedPerson && selectedImage) {
+                $('#imagePreviewModal').modal('hide');
+                deleteImage(selectedPerson, selectedImage);
+            }
+        });
+    });
+</script>
+{% endblock %}
